@@ -1,0 +1,32 @@
+#! /bin/bash
+
+# Author: Linuxer
+#
+# small and dirty password generator
+#   additional usage of a Password Manager is recommended (PWsafe, Keepass)
+#
+# VERSION: 0.05
+#
+# This software comes with ABSOLUTELY NO WARRANTY.
+
+set -e
+
+
+# if no argument given, set a default password length
+[[ $# -eq 0 ]] && LENGTH=16
+
+# a single argument is given and it is an integer, use it as password length
+[[ $# -eq 1 && "$1" =~ ^[[:digit:]]+$ ]] && LENGTH="$1"
+
+# fetch 1024 bytes from urandom, remove unwanted bytes, split into chunks
+# of $length bytes, and print only chunks of that length
+/bin/dd	if=/dev/urandom bs=1024 count=1 2>/dev/null      |\
+  /usr/bin/tr -cd "a-zA-Z0-9!#$*+-.?_"                   |\
+  /bin/sed -e "s/\(.\{$LENGTH\}\)/\1\n/g"                |\
+  while read WORD ; do
+    # print word only if it is of given length
+    [[ ${#WORD} -eq $LENGTH ]] && echo "$WORD"
+  done
+
+
+exit 0
