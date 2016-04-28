@@ -1,0 +1,6 @@
+#! /bin/bash
+
+[ -n "$1" -a "$1" != "me" ] && USER="$1"
+
+ps aux | grep -- "$USER"
+
