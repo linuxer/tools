@@ -2,28 +2,69 @@
 use strict;
 use warnings;
 
-use Term::ANSIColor qw( RESET :constants );
+use Term::ANSIColor;
+use Getopt::Long;
 
-my @colors = (
-    RED,        GREEN,        YELLOW,        CYAN,        MAGENTA,
-    BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_CYAN, BRIGHT_MAGENTA,
-);
+my @COLORS  = qw( red green yellow cyan magenta blue );
+push @COLORS, map { "bright_$_" } @COLORS;
 
+my @REMOVE;
+my $FLAG_SHOW_COLORS = 0;
 
-my @patterns = @ARGV;
-@ARGV = ();
+#> sub routines
+#> --------------------------------------------------------------------------
 
-my $reset = RESET;
+sub show_colors {
+    printf "I know %d colors: \n", @COLORS+0;
 
-warn sprintf( "(W) more patterns than colors (%s).\n", @colors+0)
-    if @patterns > @colors;
-
-while ( my $line = <> ) {
-    for my $i ( 0 .. $#patterns ) {
-        my $pattern = $patterns[$i];
-        my $color   = $colors[$i] || '';
-
-        $line =~ s{($pattern)}{${color}${1}${reset}}g;
+    for my $color ( @COLORS ) {
+        printf "%15s: ", $color;
+        print color($color), $color, color('reset'), "\n";
     }
-    print $line;
+    exit;
 }
+
+sub remove_colors {
+    return          unless @REMOVE;
+    @REMOVE = map { split m{\s*,\s*}, $_ } @REMOVE;
+    for my $color ( @REMOVE ) {
+        @COLORS = grep { $_ ne $color } @COLORS;
+    }
+
+}
+
+
+#> main program
+#> --------------------------------------------------------------------------
+
+GetOptions(
+    'remove-colors=s'    => \@REMOVE,
+    'show-colors'       =>  \$FLAG_SHOW_COLORS,
+) or exit 255;
+
+remove_colors()     if @REMOVE;
+show_colors()       if $FLAG_SHOW_COLORS;
+
+{
+    my @patterns = @ARGV;
+    @ARGV = ();
+
+    if ( @patterns > @COLORS ) {
+        warn sprintf( "(W) available colors exceeded; ignoring more than %d patterns.\n", @COLORS+0);
+        splice( @patterns, @COLORS+0 );
+    }
+
+    while ( my $line = <> ) {
+        for my $i ( 0 .. $#patterns ) {
+            my $pattern = $patterns[$i];
+            my $color   = $COLORS[$i];
+
+            $line =~ s{($pattern)}{ color($color) . $1 . color('reset')}eg;
+        }
+        print $line;
+    }
+
+}
+
+__END__
+
