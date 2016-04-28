@@ -1,0 +1,29 @@
+#! /usr/bin/env perl
+use strict;
+use warnings;
+
+use Term::ANSIColor qw( RESET :constants );
+
+my @colors = (
+    RED,        GREEN,        YELLOW,        CYAN,        MAGENTA,
+    BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_CYAN, BRIGHT_MAGENTA,
+);
+
+
+my @patterns = @ARGV;
+@ARGV = ();
+
+my $reset = RESET;
+
+warn sprintf( "(W) more patterns than colors (%s).\n", @colors+0)
+    if @patterns > @colors;
+
+while ( my $line = <> ) {
+    for my $i ( 0 .. $#patterns ) {
+        my $pattern = $patterns[$i];
+        my $color   = $colors[$i] || '';
+
+        $line =~ s{($pattern)}{${color}${1}${reset}}g;
+    }
+    print $line;
+}
