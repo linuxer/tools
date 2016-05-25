@@ -1,0 +1,47 @@
+#! /bin/bash
+
+declare -A times
+
+times["d"]=86400    # days
+times["h"]=3600     # hours
+times["m"]=60       # minutes
+times["s"]=1        # seconds
+
+make_human_readable() {
+    [ $# -eq 0 ] && return 1
+    [ -z "$1"  ] && return 1
+
+    local time="$1"
+    local string=""
+    local value
+
+    for unit in d h m s ; do
+        value=${times[$unit]}
+        if [ "${time}" -ge "${value}" ]; then
+            string+="$[time/${value}]${unit} "
+            time=$[time%${value}]
+        fi
+    done
+
+    echo $string
+}
+
+
+### MAIN
+
+# start time stamp
+T1=$( \date +%s )
+
+# execute given command with arguments
+"$@"
+
+# stop time stamp
+T2=$( \date +%s )
+
+# calc time diff
+RUNTIME=$[T2-$T1]
+
+# print resulting runtime
+echo "Runtime: $( make_human_readable "${RUNTIME}" )" >&2
+
+exit 0
