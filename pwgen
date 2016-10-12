@@ -5,7 +5,7 @@
 # small and dirty password generator
 #   additional usage of a Password Manager is recommended (PWsafe, Keepass)
 #
-# VERSION: 0.05
+# VERSION: 0.06
 #
 # This software comes with ABSOLUTELY NO WARRANTY.
 
@@ -22,11 +22,6 @@ set -e
 # of $length bytes, and print only chunks of that length
 /bin/dd	if=/dev/urandom bs=1024 count=1 2>/dev/null      |\
   /usr/bin/tr -cd "a-zA-Z0-9!#$*+-.?_"                   |\
-  /bin/sed -e "s/\(.\{$LENGTH\}\)/\1\n/g"                |\
-  while read WORD ; do
-    # print word only if it is of given length
-    [[ ${#WORD} -eq $LENGTH ]] && echo "$WORD"
-  done
-
+  grep -oE ".{$LENGTH}"
 
 exit 0
